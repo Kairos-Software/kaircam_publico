@@ -1,0 +1,137 @@
+{% extends "principal/base.html" %}
+{% load static %}
+
+{% block title %}{% if es_home %}Kaircam Oficial{% else %}{{ streamer_name }}{% endif %} - Streaming en Vivo{% endblock %}
+
+{% block content %}
+<div class="stream-layout">
+    <!-- Sección Principal: Video -->
+    <div class="stream-main">
+        <!-- Header del Stream -->
+        <div class="stream-header">
+            <div class="stream-title-section">
+                <h1 class="stream-title">{{ stream.name }}</h1>
+                {% if stream.en_vivo %}
+                    <span class="badge-live">
+                        <span class="live-pulse"></span>
+                        EN VIVO
+                    </span>
+                {% else %}
+                    <span class="badge-offline">DESCONECTADO</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="video-container">
+            <video 
+                id="videoPlayer" 
+                class="video-element" 
+                controls 
+                autoplay 
+                muted
+                playsinline
+            ></video>
+            
+            <!-- Overlay de Estado -->
+            <div id="streamStatus" class="stream-status-overlay">
+                <div class="status-content">
+                    <div class="status-spinner"></div>
+                    <p class="status-text">Conectando...</p>
+                </div>
+            </div>
+
+            <!-- Overlay de Info (solo visible en hover) -->
+            <div class="stream-overlay">
+                {% if stream.en_vivo %}
+                    <div class="overlay-badge">
+                        <span class="pulse-dot"></span>
+                        TRANSMISIÓN EN VIVO
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info del Canal -->
+        <div class="channel-info">
+            <div class="channel-avatar">
+                <img src="{% static 'principal/images/kaircam-icon.png' %}" alt="{{ stream.name }}">
+            </div>
+            <div class="channel-details">
+                <h2 class="channel-name">{{ stream.name }}</h2>
+                <p class="channel-category">{% if es_home %}Canal Oficial{% else %}Streaming{% endif %}</p>
+            </div>
+            {% if not es_home %}
+                <button class="btn-follow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Seguir
+                </button>
+            {% endif %}
+        </div>
+
+        <!-- Descripción -->
+        <div class="stream-description">
+            <p>
+                {% if es_home %}
+                Bienvenidos a Kaircam, nuestra plataforma profesional de transmisión en vivo. Aquí mostramos las últimas novedades y características de nuestro sistema de streaming multicámara.
+                {% else %}
+                Transmisión en vivo de {{ streamer_name }}. Únete a la comunidad y disfruta del mejor contenido en directo.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Sidebar: Chat -->
+    <aside class="stream-sidebar">
+        <div class="chat-container">
+            <!-- Header del Chat -->
+            <div class="chat-header">
+                <svg class="chat-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <div class="chat-header-info">
+                    <h3>Chat en Vivo</h3>
+                    <p class="chat-status">{% if stream.en_vivo %}Activo{% else %}Inactivo{% endif %}</p>
+                </div>
+            </div>
+
+            <!-- Mensajes del Chat -->
+            <div id="chatMessages" class="chat-messages">
+                <!-- Los mensajes se añaden dinámicamente via JS -->
+            </div>
+
+            <!-- Input del Chat -->
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput"
+                    class="chat-input"
+                    placeholder="Enviar mensaje..."
+                    maxlength="500"
+                    rows="1"
+                ></textarea>
+                <button id="chatSendBtn" class="chat-send-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="chat-counter">
+                <span id="charCount">0</span>/500
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Scripts específicos -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+    window.STREAM_CONFIG = {
+        hlsUrl: "{{ stream.hls_url|safe }}",
+        isLive: {{ stream.en_vivo|yesno:"true,false" }},
+        streamName: "{{ stream.name|escapejs }}",
+        isHome: {{ es_home|yesno:"true,false" }}
+    };
+</script>
+{% endblock %}
