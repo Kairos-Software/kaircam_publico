@@ -1,19 +1,35 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# ============================
+# BASE DIR
+# ============================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y3qr_m3b!#0z4^55rp)n+g7hc!3c#bu@#%_*zpb%s@wo$-qg=u'
+# ============================
+# ENVIRONMENT
+# ============================
+ENV = os.getenv("ENV", "local")
 
-# Producción: nunca usar DEBUG=True
-DEBUG = False
+env_file = BASE_DIR / f".env.{ENV}"
+if env_file.exists():
+    load_dotenv(env_file)
+else:
+    load_dotenv(BASE_DIR / ".env")
 
-ALLOWED_HOSTS = [
-    'kaircam.grupokairosarg.com',
-]
+# ============================
+# SECURITY
+# ============================
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key")
 
-# Application definition
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+
+# ============================
+# APPLICATIONS
+# ============================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,10 +52,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'stream_general.urls'
 
+# ============================
+# TEMPLATES
+# ============================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # puedes agregar aquí rutas globales de templates si las usas
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -54,42 +73,41 @@ TEMPLATES = [
 WSGI_APPLICATION = 'stream_general.wsgi.application'
 ASGI_APPLICATION = 'stream_general.asgi.application'
 
-# Database (Producción)
+# ============================
+# DATABASE
+# ============================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'streaming_vps',       # nombre exacto de la base en tu VPS
-        'USER': 'postgres',            # usuario de PostgreSQL
-        'PASSWORD': 'Grupokairos25+',  # contraseña
-        'HOST': 'localhost',           # host
-        'PORT': '5432',                # puerto
+        'ENGINE': os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST", "localhost"),
+        'PORT': os.getenv("DB_PORT", "5432"),
     }
 }
 
-# Password validation
+# ============================
+# PASSWORD VALIDATION
+# ============================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# ============================
+# I18N
+# ============================
 LANGUAGE_CODE = 'es-ar'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
-
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# ============================
+# STATIC FILES
+# ============================
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
@@ -98,5 +116,10 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================
+# HLS SETTINGS (PÚBLICO)
+# ============================
+HLS_BASE_URL = os.getenv("HLS_BASE_URL")
+HLS_PROGRAM_PATH = os.getenv("HLS_PROGRAM_PATH", "program")
