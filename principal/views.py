@@ -1,3 +1,7 @@
+import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.conf import settings
@@ -81,4 +85,29 @@ def usuario_stream_view(request, username):
         'es_home': False,
         'streamer_name': canal.usuario.username,
         'cliente': cliente,
+        'guest_name': request.session.get('guest_name', ''),
     })
+
+# ============================
+# API INTERNA (Chat Invitado)
+# ============================
+@require_POST
+def set_guest_name(request):
+    """Guarda el nombre temporal del invitado en la sesión"""
+    try:
+        data = json.loads(request.body)
+        nickname = data.get('nickname', '').strip()
+
+        if not nickname:
+            return JsonResponse({'success': False, 'error': 'El nombre no puede estar vacío.'})
+        
+        if len(nickname) > 20:
+            return JsonResponse({'success': False, 'error': 'El nombre es muy largo (máx 20 caracteres).'})
+
+        # Guardamos en la sesión (esto es lo que leerá Django Channels después)
+        request.session['guest_name'] = nickname
+        request.session.modified = True # Aseguramos que se guarde
+
+        return JsonResponse({'success': True, 'nickname': nickname})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
