@@ -1,301 +1,258 @@
 {% extends "principal/base.html" %}
 {% load static %}
 
-{% block title %}{% if es_home %}Kaircam Oficial{% else %}{{ streamer_name }}{% endif %} - Streaming en Vivo{% endblock %}
+{% block title %}{% if es_home %}KAIRCAM OFICIAL{% else %}Canal de {{ streamer_name }}{% endif %} - Streaming en Vivo{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Efecto de scroll elegante para el chat */
+    #chatMessages::-webkit-scrollbar { width: 4px; }
+    #chatMessages::-webkit-scrollbar-track { background: transparent; }
+    #chatMessages::-webkit-scrollbar-thumb { 
+        background: rgba(255, 62, 62, 0.2); 
+        border-radius: 10px; 
+    }
+    #chatMessages::-webkit-scrollbar-thumb:hover { background: #ff3e3e; }
+
+    /* Animación de entrada para nuevos mensajes */
+    @keyframes fadeInSlide {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .message-item { animation: fadeInSlide 0.3s ease-out forwards; }
+
+    /* Glow sutil para el contenedor del chat */
+    .chat-container {
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="stream-layout">
-    <div class="stream-main">
-        <div class="stream-header">
-            <h1 class="stream-title">{{ stream.name }}</h1>
-            {% if stream.en_vivo %}
-                <span class="badge-live">
-                    <span class="live-pulse"></span>
-                    EN VIVO
-                </span>
-            {% else %}
-                <span class="badge-offline">OFFLINE</span>
-            {% endif %}
-        </div>
-
-        <div class="video-container">
-            <video 
-                id="videoPlayer" 
-                class="video-element" 
-                controls 
-                autoplay 
-                muted
-                playsinline
-            ></video>
-            
-            <div id="streamStatus" class="stream-status-overlay">
-                <div class="status-content">
-                    <div class="status-spinner"></div>
-                    <p class="status-text" style="color:var(--text-secondary);">Conectando señal...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="channel-info">
-            <div class="channel-avatar">
-                <img src="{% static 'principal/images/kaircam-icon.png' %}" alt="{{ stream.name }}">
-            </div>
-            
-            <div class="channel-details">
-                {% if cliente %}
-                    <h2 class="channel-name">{{ cliente.nombre }} {{ cliente.apellido }}</h2>
-                {% else %}
-                    <h2 class="channel-name">{{ stream.name }}</h2>
-                {% endif %}
+<main class="max-w-[1800px] mx-auto p-4 md:p-6 grid grid-cols-1 xl:grid-cols-4 gap-6">
+    
+    <div class="xl:col-span-3 flex flex-col gap-6">
+        
+        <div class="relative group">
+            <div class="aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl relative border border-white/5">
+                <video id="videoPlayer" class="w-full h-full object-cover" controls autoplay muted playsinline></video>
                 
-                <p class="channel-category">
-                    {% if es_home %}Canal Oficial{% else %}Streaming / Entretenimiento{% endif %}
-                </p>
+                <div id="streamStatus" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-500">
+                    <div class="w-14 h-14 border-4 border-white/10 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p class="font-display font-bold text-sm tracking-[0.3em] text-white uppercase animate-pulse">Cargando Señal</p>
+                </div>
 
-                {% if not es_home and cliente %}
-                <div class="social-links">
-                    {% if cliente.instagram %}
-                    <a href="{{ cliente.instagram }}" target="_blank" class="btn-social" title="Instagram">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                    </a>
-                    {% endif %}
-
-                    {% if cliente.x_twitter %}
-                    <a href="{{ cliente.x_twitter }}" target="_blank" class="btn-social" title="X / Twitter">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
-                    </a>
-                    {% endif %}
-
-                    {% if cliente.facebook %}
-                    <a href="{{ cliente.facebook }}" target="_blank" class="btn-social" title="Facebook">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                    </a>
-                    {% endif %}
-
-                    {% if cliente.youtube %}
-                    <a href="{{ cliente.youtube }}" target="_blank" class="btn-social" title="YouTube">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-                    </a>
-                    {% endif %}
-                    
-                    {% if cliente.tiktok %}
-                    <a href="{{ cliente.tiktok }}" target="_blank" class="btn-social" title="TikTok">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
-                    </a>
-                    {% endif %}
-                    
-                    {% if cliente.discord %}
-                    <a href="{{ cliente.discord }}" target="_blank" class="btn-social" title="Discord">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 5.5a19 19 0 0 0-5-2.5 13 13 0 0 0-2 4 15 15 0 0 0-5 0 13 13 0 0 0-2-4 19 19 0 0 0-5 2.5c-3 5.5-3 12-1 16 2.5 2 6 2 8 2 1-1.5 2-3 2-3 1.5 0 3 0 4.5 0 0 0 1 1.5 2 3 2 4 0 2.5 0 5-2 1-1 1-7.5-2-13.5zm-13 11c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3zm8 0c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"></path></svg>
-                    </a>
-                    {% endif %}
+                {% if stream.en_vivo %}
+                <div class="absolute top-6 right-6">
+                    <span class="flex items-center gap-2 bg-black/60 backdrop-blur-md border border-primary/50 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest text-white uppercase">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                        EN VIVO
+                    </span>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <div class="stream-description">
-            {% if cliente and cliente.bio %}
-                <h4 style="color:var(--brand-red); margin-bottom:8px; text-transform:uppercase;">Biografía</h4>
-                <p>{{ cliente.bio }}</p>
-            {% else %}
-                <p>
-                    {% if es_home %}
-                    Bienvenidos a Kaircam. Disfruta de la mejor experiencia de streaming con tecnología de baja latencia.
-                    {% else %}
-                    Este streamer aún no ha añadido una biografía. ¡Disfruta de la transmisión!
-                    {% endif %}
-                </p>
-            {% endif %}
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-white/5">
+                <div class="flex items-center gap-4">
+                    <div class="relative shrink-0">
+                        <div class="w-16 h-16 rounded-2xl p-0.5 bg-gradient-to-tr from-primary to-orange-500 shadow-lg shadow-primary/20">
+                            <img alt="Avatar" class="w-full h-full rounded-2xl object-cover border-2 border-card-dark" src="{% static 'principal/images/avatar.png' %}" />
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 bg-primary w-6 h-6 rounded-full border-4 border-card-dark flex items-center justify-center">
+                            <span class="material-icons text-[12px] text-white font-bold">verified</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h1 class="text-2xl font-display font-bold tracking-tight">
+                            {% if es_home %}KAIRCAM OFICIAL{% else %}{{ streamer_name }}{% endif %}
+                        </h1>
+                        <div class="flex items-center gap-3 text-xs font-medium mt-1">
+                            <span class="text-primary uppercase tracking-wider font-bold">Partnership</span>
+                            <span class="w-1 h-1 bg-slate-500 rounded-full"></span>
+                            <span class="text-slate-400">1.2M seguidores</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button class="flex-1 md:flex-none px-6 py-3 bg-primary hover:bg-red-600 text-white rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-primary/20">
+                        <span class="material-icons text-sm">favorite</span> SEGUIR
+                    </button>
+                    <button class="p-3 bg-slate-100 dark:bg-white/5 hover:bg-primary/20 rounded-xl transition-all group">
+                        <span class="material-icons text-xl group-hover:text-primary">share</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <aside class="stream-sidebar">
-        <div class="chat-container">
-            <div class="chat-header">
-                <svg class="chat-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                </svg>
-                <div class="chat-header-info">
-                    <h3>Chat en Vivo</h3>
+    <div class="xl:col-span-1 flex flex-col h-[600px] xl:h-[calc(100vh-120px)] sticky top-24">
+        <div class="chat-container flex flex-col h-full bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
+            
+            <div class="px-5 py-4 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.01]">
+                <div class="flex items-center gap-3">
+                    <div class="p-1.5 bg-primary/10 rounded-lg">
+                        <span class="material-icons text-primary text-sm">forum</span>
+                    </div>
+                    <span class="font-display font-bold tracking-widest uppercase text-xs">Chat en vivo</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">2.4k</span>
+                    </div>
+                    <span class="material-icons text-slate-500 cursor-pointer hover:text-primary transition-colors text-lg">settings</span>
                 </div>
             </div>
-
-            <div id="chatMessages" class="chat-messages">
+            
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div class="message-item bg-primary/5 p-3 rounded-xl border border-primary/10">
+                    <p class="text-[11px] font-bold text-primary mb-1 uppercase tracking-tighter">Bienvenida Kaircam</p>
+                    <p class="text-xs dark:text-slate-300 leading-snug font-medium">¡Hola! Estás viendo el canal oficial. Sé amable y disfruta de la baja latencia. 🚀</p>
                 </div>
 
-            <div class="chat-input-wrapper">
-                <textarea 
-                    id="chatInput"
-                    class="chat-input"
-                    placeholder="Escribe un mensaje..."
-                    maxlength="500"
-                    rows="1"
-                ></textarea>
-                <button id="chatSendBtn" class="chat-send-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                </button>
+                <div class="message-item group">
+                    <div class="flex items-start gap-2.5">
+                        <span class="font-black text-[12px] text-blue-400 hover:underline cursor-pointer">GamerPro99:</span>
+                        <span class="text-[12px] text-slate-600 dark:text-slate-200 leading-tight">La calidad 4K es increíble hoy! 🔥</span>
+                    </div>
+                </div>
+
+                <div class="message-item px-2 py-1 rounded-lg bg-white/[0.02]">
+                    <div class="flex items-start gap-2.5">
+                        <span class="flex items-center gap-1 shrink-0">
+                            <span class="material-icons text-[12px] text-purple-500">security</span>
+                            <span class="font-black text-[12px] text-purple-500">Admin_Zero:</span>
+                        </span>
+                        <span class="text-[12px] text-slate-400 font-medium">@SofiaStream El torneo inicia en breve, ¡prepárate!</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-slate-50/50 dark:bg-white/[0.01] border-t border-slate-200 dark:border-white/5">
+                <div class="relative group">
+                    <input 
+                        id="chatInput"
+                        type="text"
+                        maxlength="500"
+                        class="w-full bg-slate-100 dark:bg-background-dark border border-slate-200 dark:border-white/5 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl py-3.5 pl-4 pr-12 text-xs font-medium transition-all duration-300 placeholder:text-slate-500" 
+                        placeholder="Escribe algo increíble..." 
+                    />
+                    <button id="chatSendBtn" class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-red-600 text-white w-9 h-9 rounded-lg flex items-center justify-center transition-all shadow-lg shadow-primary/30 active:scale-90">
+                        <span class="material-icons text-lg">send</span>
+                    </button>
+                </div>
+                
+                <div class="flex justify-between items-center mt-3">
+                    <div class="flex items-center gap-1">
+                        <button class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+                            <span class="material-icons text-lg">sentiment_satisfied</span>
+                        </button>
+                        <button class="p-1.5 text-slate-400 hover:text-orange-400 hover:bg-orange-400/10 rounded-lg transition-all">
+                            <span class="material-icons text-lg">monetization_on</span>
+                        </button>
+                    </div>
+                    <span id="charCount" class="text-[9px] font-black text-slate-500 tracking-tighter uppercase">0 / 500</span>
+                </div>
             </div>
         </div>
-    </aside>
-</div>
-<div id="guestModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <h3>👋 ¡Únete al chat!</h3>
-        <p>Elige un nombre para chatear (se borrará al salir).</p>
+    </div>
+</main>
+
+<div id="guestModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[9999] flex items-center justify-center p-4" style="display: none;">
+    <div class="bg-card-dark p-8 rounded-3xl w-full max-w-sm border border-white/10 shadow-[0_0_50px_-12px_rgba(255,62,62,0.3)] text-center">
+        <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-icons text-4xl text-primary">person_add</span>
+        </div>
+        <h3 class="text-2xl font-display font-bold mb-2">¿Cómo te llamas?</h3>
+        <p class="text-slate-400 text-sm mb-6">Elige un nombre para participar en la conversación.</p>
         
-        <input type="text" id="guestNicknameInput" placeholder="Tu nombre..." maxlength="20" autofocus>
-        <p id="guestError" style="color: #ff4444; font-size: 0.9em; display: none;"></p>
-        
-        <div class="modal-actions">
-            <button id="saveGuestBtn" class="btn-primary">Entrar al Chat</button>
-            <button id="cancelGuestBtn" class="btn-secondary">Solo mirar</button>
+        <div class="space-y-4">
+            <input type="text" id="guestNicknameInput" placeholder="Ej: StreamLover_22" maxlength="20" 
+                class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-center font-bold focus:ring-2 focus:ring-primary outline-none transition-all" />
+            
+            <p id="guestError" class="text-red-500 text-xs font-bold" style="display: none;"></p>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <button id="saveGuestBtn" class="bg-primary hover:bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-primary/20">ENTRAR</button>
+                <button id="cancelGuestBtn" class="bg-white/5 text-slate-300 py-4 rounded-2xl font-bold text-xs uppercase transition-all">MIRAR</button>
+            </div>
         </div>
     </div>
 </div>
-<style>
-    .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.8); z-index: 1000;
-        display: flex; justify-content: center; align-items: center;
-    }
-    .modal-content {
-        background: #1a1a1a; padding: 25px; border-radius: 12px;
-        width: 90%; max-width: 350px; text-align: center;
-        border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
-    .modal-content h3 { margin-top: 0; color: #fff; }
-    .modal-content p { color: #aaa; margin-bottom: 15px; }
-    .modal-content input {
-        width: 100%; padding: 10px; margin-bottom: 10px;
-        background: #333; border: 1px solid #555; color: #fff; border-radius: 6px;
-    }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-    .btn-primary { background: var(--brand-red, #e50914); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-    .btn-secondary { background: transparent; color: #aaa; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-    .btn-primary:hover { opacity: 0.9; }
-</style>
+
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-    // 1. CONFIGURACIÓN INICIAL (Traemos datos de Django al JS)
+    // Configuración Global inyectada desde Django
     window.STREAM_CONFIG = {
         hlsUrl: "{{ stream.hls_url|safe }}",
         isLive: {{ stream.en_vivo|yesno:"true,false" }},
-        streamName: "{{ stream.name|escapejs }}",
-        isHome: {{ es_home|yesno:"true,false" }},
-        // Aquí capturamos el nombre si ya existe en la sesión
-        guestName: "{{ guest_name|default:''|escapejs }}" 
+        guestName: "{{ guest_name|default:''|escapejs }}"
     };
 
     document.addEventListener("DOMContentLoaded", function() {
-        // Referencias a los elementos del DOM
         const chatInput = document.getElementById('chatInput');
+        const charCount = document.getElementById('charCount');
         const modal = document.getElementById('guestModal');
         const nickInput = document.getElementById('guestNicknameInput');
         const saveBtn = document.getElementById('saveGuestBtn');
         const cancelBtn = document.getElementById('cancelGuestBtn');
         const errorMsg = document.getElementById('guestError');
 
-        // --- LÓGICA DEL CHAT ---
-        
-        // Al intentar escribir en el chat...
+        // Actualizar contador de caracteres dinámicamente
+        chatInput.addEventListener('input', function() {
+            charCount.textContent = `${this.value.length} / 500`;
+            if(this.value.length > 450) charCount.classList.add('text-primary');
+            else charCount.classList.remove('text-primary');
+        });
+
+        // Lógica de Modal para usuarios no registrados
         chatInput.addEventListener('focus', function(e) {
-            // Verificamos si ya tiene nombre (sea registrado o invitado)
-            // Asumimos que si es usuario registrado, Django ya manejó la sesión, 
-            // pero para invitados dependemos de guestName.
-            // NOTA: Si tienes lógica de usuarios registrados, agrégala a la condición aquí.
-            const hasName = window.STREAM_CONFIG.guestName && window.STREAM_CONFIG.guestName !== '';
-            
-            if (!hasName) {
-                // Si no tiene nombre, quitamos el foco del input y mostramos el modal
-                chatInput.blur(); 
+            if (!window.STREAM_CONFIG.guestName) {
+                chatInput.blur();
                 modal.style.display = 'flex';
                 nickInput.focus();
             }
         });
 
-        // --- LÓGICA DEL MODAL ---
-
-        // Botón "Entrar al Chat"
+        // Guardar nombre de invitado vía AJAX
         saveBtn.addEventListener('click', function() {
             const name = nickInput.value.trim();
-            
-            // Validación simple cliente
-            if (!name) {
-                showError("Por favor escribe un nombre.");
-                return;
-            }
+            if (!name) { showError("Escribe un nombre válido"); return; }
 
-            // Enviamos el nombre al Backend
             fetch("{% url 'set_guest_name' %}", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie('csrftoken') // Necesario para seguridad en Django
-                },
+                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
                 body: JSON.stringify({ nickname: name })
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // ¡Éxito!
-                    window.STREAM_CONFIG.guestName = data.nickname; // Guardamos en memoria
-                    modal.style.display = 'none'; // Cerramos modal
-                    
-                    // Feedback visual
-                    chatInput.placeholder = `Escribiendo como ${data.nickname}...`;
-                    chatInput.focus(); // Devolvemos el foco al chat
-                    
-                    // Limpiamos error
-                    errorMsg.style.display = 'none';
-                    
-                } else {
-                    // Error del servidor (ej: nombre muy largo)
-                    showError(data.error);
-                }
-            })
-            .catch(err => {
-                console.error("Error:", err);
-                showError("Error de conexión. Intenta de nuevo.");
+                    window.STREAM_CONFIG.guestName = data.nickname;
+                    modal.style.display = 'none';
+                    chatInput.placeholder = `Chateando como ${data.nickname}...`;
+                    chatInput.focus();
+                } else { showError(data.error); }
             });
         });
 
-        // Botón "Solo mirar" (Cancelar)
-        cancelBtn.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-
-        // Permitir guardar presionando ENTER en el input del modal
-        nickInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                saveBtn.click();
-            }
-        });
-
-        // --- FUNCIONES AUXILIARES ---
+        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
 
         function showError(msg) {
             errorMsg.textContent = msg;
             errorMsg.style.display = 'block';
         }
 
-        // Función estándar de Django para obtener el token CSRF de las cookies
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
+        // Scroll al fondo automático (Simulación)
+        const messagesBox = document.getElementById('chatMessages');
+        messagesBox.scrollTop = messagesBox.scrollHeight;
     });
 </script>
 {% endblock %}

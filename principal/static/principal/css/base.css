@@ -1,694 +1,83 @@
 /* ============================================
-   KAIRCAM PUBLIC - NEON EDITION (MATCH CONTROL PANEL)
+   KAIRCAM - ESTILOS COMPLEMENTARIOS A TAILWIND
    ============================================ */
 
-   :root {
-    /* --- PALETA NEÓN (IDÉNTICA AL PANEL) --- */
-    --bg-primary: #050505;
-    --bg-secondary: #0a0e1a;
-    --bg-tertiary: #14161f;
-    --bg-elevated: #1a1d26;
-    
-    --brand-red: #ef4444;
-    --brand-red-dark: #b91c1c;
-    --brand-red-light: #ff7f7f;
-    
-    --text-primary: #ffffff;
-    --text-secondary: #d1d5db;
-    --text-muted: #6b7280;
-
-    /* Bordes & Glows */
-    --border-subtle: rgba(239, 68, 68, 0.2);
-    --border-medium: rgba(239, 68, 68, 0.5);
-    
-    --glow-red: 0 0 15px rgba(239, 68, 68, 0.4);
-    --glow-red-strong: 0 0 25px rgba(239, 68, 68, 0.6);
-    --glow-green: 0 0 15px rgba(16, 185, 129, 0.3);
-
-    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.8);
-
-    /* Espaciado y Radios */
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-full: 999px;
-
-    --transition: 200ms ease;
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+    width: 6px;
 }
-
-/* ============================================
-   RESET Y BASE
-   ============================================ */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: 
-        linear-gradient(rgba(5, 8, 15, 0.9), rgba(5, 8, 15, 0.95)),
-        url('../images/fondo.png') no-repeat center center fixed;
-    background-size: cover;
-    color: var(--text-primary);
-    line-height: 1.5;
-    min-height: 100vh;
-}
-
-a { text-decoration: none; color: inherit; transition: var(--transition); }
-button { border: none; background: none; cursor: pointer; font-family: inherit; outline: none; }
-img { display: block; max-width: 100%; }
-
-/* ============================================
-   NAVBAR NEÓN
-   ============================================ */
-.navbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 70px;
-    background: rgba(10, 14, 26, 0.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-medium);
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
-}
-
-.navbar-container {
-    max-width: 1600px;
-    height: 100%;
-    margin: 0 auto;
-    padding: 0 var(--space-6);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-8);
-}
-
-.navbar-brand { display: flex; align-items: center; gap: 12px; }
-.brand-logo {
-    /* Establecemos límites máximos en lugar de fijos */
-    max-height: 45px;  /* Un poco más alto por si acaso */
-    max-width: 180px;  /* Evita que un logo muy ancho rompa el menú */
-    
-    /* Esto hace que se ajuste automáticamente sin deformarse */
-    width: auto;
-    height: auto;
-    object-fit: contain; 
-    
-    /* Mantenemos el filtro de brillo rojo */
-    filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
-}
-
-.brand-info { display: flex; flex-direction: column; }
-.brand-name { font-size: 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-.brand-tagline { font-size: 0.75rem; color: var(--brand-red); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
-
-/* Navegación */
-.navbar-center { flex: 1; display: flex; align-items: center; gap: var(--space-6); max-width: 600px; }
-
-.nav-link {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 16px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-radius: var(--radius-md);
-    border: 1px solid transparent;
-}
-
-.nav-link:hover, .nav-link.active {
-    color: var(--brand-red);
-    background: rgba(239, 68, 68, 0.1);
-    border-color: var(--brand-red);
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-}
-
-.nav-link svg { width: 18px; height: 18px; }
-
-/* Buscador */
-.search-wrapper { position: relative; flex: 1; max-width: 400px; }
-.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
-
-.search-input {
-    width: 100%; height: 40px;
-    padding: 0 var(--space-4) 0 44px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-full);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    transition: all var(--transition);
-}
-
-.search-input:focus { border-color: var(--brand-red); background: rgba(0, 0, 0, 0.8); box-shadow: 0 0 10px var(--border-subtle); outline: none; }
-.search-input::placeholder { color: var(--text-muted); letter-spacing: 0.5px; }
-
-/* Botón Login */
-.btn-login {
-    padding: 0 24px; height: 40px;
+::-webkit-scrollbar-track {
     background: transparent;
-    border: 1px solid var(--brand-red);
-    color: var(--brand-red);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: var(--radius-full);
-    font-size: 0.85rem;
-    transition: all var(--transition);
+}
+::-webkit-scrollbar-thumb {
+    background: #2d2f36;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #ff3e3e;
 }
 
-.btn-login:hover { background: var(--brand-red); color: white; box-shadow: var(--glow-red); }
-
-/* ============================================
-   MAIN LAYOUT
-   ============================================ */
-.main-content { margin-top: 70px; min-height: calc(100vh - 70px); }
-
-.stream-layout {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 24px;
-    max-width: 1920px;
-    margin: 0 auto;
-    padding: 32px;
+/* Efectos de glow */
+.glow-red {
+    box-shadow: 0 0 15px rgba(255, 62, 62, 0.2);
 }
 
-.stream-main { display: flex; flex-direction: column; gap: 24px; }
-
-/* ============================================
-   STREAM HEADER
-   ============================================ */
-.stream-header { display: flex; align-items: center; justify-content: space-between; }
-.stream-title { font-size: 2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.1); }
-
-.badge-live {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 16px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid var(--brand-red);
-    color: var(--brand-red);
-    font-size: 0.8rem; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 1px;
-    border-radius: var(--radius-full);
-    box-shadow: var(--glow-red);
+.border-red-glow {
+    border: 1px solid rgba(255, 62, 62, 0.3);
 }
 
-.live-pulse { width: 8px; height: 8px; background: var(--brand-red); border-radius: 50%; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
-.badge-offline {
-    padding: 6px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--text-muted);
-    color: var(--text-muted);
-    font-size: 0.8rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
-    border-radius: var(--radius-full);
-}
-
-/* ============================================
-   VIDEO PLAYER (NEON FRAME)
-   ============================================ */
-.video-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #000;
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-lg), 0 0 20px rgba(239, 68, 68, 0.1);
-}
-
-.video-element { width: 100%; height: 100%; }
-
-/* Status Overlay */
-.stream-status-overlay {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(5, 5, 5, 0.9);
-    z-index: 10;
-    transition: opacity 0.3s;
-}
-.stream-status-overlay.hidden { opacity: 0; pointer-events: none; }
-
-.status-spinner {
-    width: 50px; height: 50px; margin: 0 auto 16px;
-    border: 3px solid rgba(239, 68, 68, 0.2);
-    border-top-color: var(--brand-red);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ============================================
-   CHANNEL INFO & REDES
-   ============================================ */
-.channel-info {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 24px;
-    padding: 24px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-}
-
-.channel-avatar {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    padding: 4px;
-    border: 2px solid var(--border-medium);
-    box-shadow: var(--glow-red);
-}
-.channel-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-
-.channel-details { flex: 1; min-width: 200px; }
-.channel-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-.channel-category { color: var(--brand-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
-
-/* Redes Sociales Grid */
-.social-links { display: flex; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
-.btn-social {
-    width: 40px; height: 40px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    transition: all 0.2s;
-}
-.btn-social:hover {
-    background: var(--brand-red);
-    color: white;
-    border-color: var(--brand-red);
-    box-shadow: var(--glow-red);
-    transform: translateY(-2px);
-}
-.btn-social svg { width: 20px; height: 20px; }
-
-/* Descripción */
-.stream-description {
-    padding: 24px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-/* ============================================
-   CHAT SIDEBAR
-   ============================================ */
-.stream-sidebar { position: sticky; top: 94px; height: calc(100vh - 126px); }
-
-.chat-container {
-    height: 100%; display: flex; flex-direction: column;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-}
-
-.chat-header {
-    padding: 16px;
-    background: rgba(239, 68, 68, 0.05);
-    border-bottom: 1px solid var(--border-subtle);
-    display: flex; align-items: center; gap: 12px;
-}
-.chat-icon { color: var(--brand-red); width: 24px; }
-.chat-header h3 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-
-.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.chat-message { font-size: 0.9rem; }
-.message-author { font-weight: 700; color: var(--brand-red); margin-right: 6px; }
-.message-text { color: var(--text-secondary); }
-
-.chat-input-wrapper {
-    padding: 16px;
-    border-top: 1px solid var(--border-subtle);
-    background: var(--bg-tertiary);
-    display: flex; gap: 10px;
-}
-
-.chat-input {
-    flex: 1;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border-subtle);
-    padding: 10px;
-    border-radius: var(--radius-md);
-    color: white;
-    resize: none;
-}
-.chat-input:focus { border-color: var(--brand-red); outline: none; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
-
-.chat-send-btn {
-    width: 44px; height: 44px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid var(--brand-red);
-    color: var(--brand-red);
-    border-radius: var(--radius-md);
-    display: flex; align-items: center; justify-content: center;
-}
-.chat-send-btn:hover { background: var(--brand-red); color: white; box-shadow: var(--glow-red); }
-
-/* ============================================
-   RESPONSIVE (MÓVIL Y TABLET)
-   ============================================ */
-
-/* --- TABLET / LAPTOP PEQUEÑA (Menos de 1200px) --- */
-@media (max-width: 1200px) {
-    /* Cambiamos el Grid a Flex Vertical */
-    .stream-layout {
-        display: flex;
-        flex-direction: column;
-        padding: 16px;
-        gap: 16px;
-    }
-
-    /* TRUCO DE MAGIA: "display: contents"
-       Esto hace que el div .stream-main "desaparezca" para el layout,
-       permitiendo que sus hijos (Video, Info, etc.) se mezclen con el Sidebar (Chat)
-       en el mismo contenedor padre flexible. */
-    .stream-main {
-        display: contents;
-    }
-
-    /* --- REORDENAMIENTO MÁGICO --- */
-    
-    /* 1. Título arriba */
-    .stream-header { order: 1; margin-bottom: 10px; }
-    
-    /* 2. Video segundo */
-    .video-container { order: 2; margin-bottom: 10px; }
-
-    /* 3. CHAT TERCERO (Aquí está el cambio que pediste) */
-    .stream-sidebar { 
-        order: 3; 
-        width: 100%;
-        height: 450px; /* Altura fija cómoda para chatear en móvil */
-        position: static;
-        margin-bottom: 20px;
-        border-right: none;
-        border: 1px solid var(--border-medium);
-    }
-
-    /* 4. Info del Canal cuarta */
-    .channel-info { order: 4; margin-bottom: 16px; }
-
-    /* 5. Descripción al final */
-    .stream-description { order: 5; }
-}
-
-/* --- MÓVIL (Menos de 768px) --- */
-@media (max-width: 768px) {
-    
-    /* === AJUSTE DE NAVBAR (Para que no se vea desalineado) === */
-    .navbar { height: 60px; }
-    .main-content { margin-top: 60px; }
-
-    .navbar-container {
-        padding: 0 12px;
-        gap: 10px;
-        justify-content: space-between;
-    }
-
-    /* 1. Logo: Ocultamos el texto "Kaircam", dejamos solo el logo rojo */
-    .brand-info { display: none; }
-    .brand-logo { max-height: 35px; width: auto; }
-
-    /* 2. Navegación: Ocultamos texto "Inicio", dejamos solo ícono */
-    .nav-link span { display: none; }
-    .nav-link { padding: 8px; }
-
-    /* 3. Buscador: Lo hacemos más pequeño */
-    .search-wrapper { 
-        max-width: 140px; /* Reducimos ancho */
-    }
-    .search-input { font-size: 0.8rem; padding-left: 35px; }
-
-    /* 4. Botón Login: Más compacto y visible */
-    .btn-login {
-        padding: 0 12px;
-        font-size: 0.75rem;
-        height: 32px;
-        white-space: nowrap; /* Evita que el texto baje de línea */
-    }
-
-    /* === AJUSTES DE CONTENIDO === */
-    .stream-title { font-size: 1.25rem; }
-    .badge-live { padding: 4px 10px; font-size: 0.7rem; }
-    
-    .channel-info { 
-        flex-direction: column; 
-        text-align: center; 
-        padding: 16px;
-    }
-    
-    .social-links { justify-content: center; }
-    
-    /* Ajuste del Chat en pantallas muy chicas */
-    .stream-sidebar { height: 400px; }
-}
-
-/* ============================================
-   FOOTER PROFESIONAL (NEON STYLE)
-   ============================================ */
-   .footer {
-    background: #020202; /* Fondo casi negro */
-    border-top: 1px solid var(--border-medium);
-    padding-top: 60px;
-    margin-top: 60px;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Efecto de luz superior */
-.footer::before {
+/* Indicador EN VIVO con animación */
+.live-indicator::before {
     content: '';
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 60%; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--brand-red), transparent);
-    opacity: 0.5;
-}
-
-.footer-container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 32px;
-    display: grid;
-    grid-template-columns: 400px 1fr; /* Columna ancha para marca, el resto para links */
-    gap: 80px;
-    margin-bottom: 60px;
-}
-
-/* --- Sección de Marca --- */
-.footer-brand-section { display: flex; flex-direction: column; gap: 20px; }
-
-.footer-logo-wrapper { display: flex; align-items: center; gap: 12px; }
-.footer-logo {
-    /* Límites máximos para el footer */
-    max-height: 40px;
-    max-width: 150px;
-    
-    /* Ajuste automático */
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    
-    /* Estilos existentes del footer (blanco y negro al inicio) */
-    filter: grayscale(100%) brightness(200%);
-    opacity: 0.9;
-    transition: all 0.3s;
-}
-.footer-logo:hover { filter: none; opacity: 1; }
-
-.footer-version {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--brand-red);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.footer-description {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.6;
-    max-width: 350px;
-}
-
-/* --- Insignia de Empresa (Kairos Software) --- */
-.company-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-subtle);
-    padding: 10px 16px;
-    border-radius: var(--radius-md);
-    width: fit-content;
-    transition: all 0.3s ease;
-    cursor: default;
-}
-
-.company-badge:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--text-secondary);
-    transform: translateY(-2px);
-}
-
-.company-icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, #333, #111);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    color: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-.company-icon svg { width: 18px; height: 18px; }
-
-.company-info { display: flex; flex-direction: column; line-height: 1.2; }
-.company-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-.company-name { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.5px; }
-
-/* --- Grid de Links --- */
-.footer-nav-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-}
-
-.footer-column h4 {
-    font-size: 0.85rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--text-primary);
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-}
-
-.footer-column a {
-    display: block;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 12px;
-    transition: color 0.2s;
-}
-
-.footer-column a:hover { color: var(--brand-red); padding-left: 4px; }
-
-/* --- Barra Inferior --- */
-.footer-bottom {
-    background: rgba(0,0,0,0.5);
-    border-top: 1px solid var(--border-subtle);
-    padding: 24px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.footer-bottom-links { display: flex; gap: 16px; align-items: center; }
-.footer-bottom-links a { color: var(--text-muted); transition: color 0.2s; }
-.footer-bottom-links a:hover { color: white; }
-.separator { color: var(--border-medium); }
-
-/* --- Responsive Footer --- */
-@media (max-width: 900px) {
-    .footer-container { grid-template-columns: 1fr; gap: 40px; }
-    .footer-brand-section { border-bottom: 1px solid var(--border-subtle); padding-bottom: 30px; }
-    .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
-}
-@media (max-width: 600px) {
-    .footer-nav-grid { grid-template-columns: 1fr; gap: 30px; }
-}
-
-/* ============================================
-   NOTIFICACIONES FLOTANTES (CARTELES)
-   ============================================ */
-   #notification-container {
-    position: fixed;
-    top: 90px; /* Debajo del navbar */
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    pointer-events: none; /* Para poder clickear debajo si no hay noti */
-}
-
-.notification {
-    pointer-events: auto;
-    min-width: 300px;
-    padding: 16px 20px;
-    background: rgba(10, 14, 26, 0.95); /* Fondo oscuro casi opaco */
-    border-left: 4px solid;
-    border-radius: var(--radius-md);
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    
-    /* Animación de entrada */
-    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    opacity: 0;
-    transform: translateX(50px);
-}
-
-@keyframes slideIn {
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.notification span {
-    font-weight: 500;
-    font-size: 0.95rem;
-    flex: 1;
-}
-
-/* --- TIPO: ERROR (ROJO NEÓN) --- */
-.notification-error {
-    border-color: var(--brand-red);
-    box-shadow: 0 5px 20px rgba(239, 68, 68, 0.2);
-}
-.notification-error svg { color: var(--brand-red); }
-
-/* --- TIPO: INFO / WARNING (AZUL/AMARILLO) --- */
-.notification-info, .notification-success {
-    border-color: #3b82f6; /* Azul */
-    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.2);
-}
-.notification-info svg { color: #3b82f6; }
-
-.notification-warning {
-    border-color: #f59e0b; /* Naranja */
-    box-shadow: 0 5px 20px rgba(245, 158, 11, 0.2);
-}
-.notification-warning svg { color: #f59e0b; }
-
-/* Botón de cerrar */
-.notification-close {
-    opacity: 0.6;
-    transition: 0.2s;
-    padding: 4px;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #ff3e3e;
     border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 1.5s infinite;
 }
-.notification-close:hover {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
+
+@keyframes pulse {
+    0% { 
+        transform: scale(0.95); 
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7); 
+    }
+    70% { 
+        transform: scale(1); 
+        box-shadow: 0 0 0 6px rgba(255, 62, 62, 0); 
+    }
+    100% { 
+        transform: scale(0.95); 
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0); 
+    }
 }
-.notification-close svg { width: 18px; height: 18px; color: white; }
+
+/* Animación para notificaciones */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slideIn {
+    animation: slideIn 0.4s ease-out forwards;
+}
+
+/* Estilos para el contenido principal */
+.main-content {
+    min-height: calc(100vh - 70px);
+}
+
+/* Ajustes responsive para móviles */
+@media (max-width: 768px) {
+    /* Ocultar texto en navegación móvil */
+    .lg\:flex span:not(.material-icons) {
+        display: none;
+    }
+}

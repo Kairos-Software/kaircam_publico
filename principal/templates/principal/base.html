@@ -1,71 +1,126 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Kaircam - Streaming Platform{% endblock %}</title>
+    <title>{% block title %}KAIRCAM - Streaming Platform{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Material+Icons&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#ff3e3e", // Rojo Kaircam
+                        "background-light": "#f9fafb",
+                        "background-dark": "#0d0e12", // Fondo oscuro premium
+                        "card-dark": "#16181d",
+                        "accent-red": "#ff3e3e",
+                    },
+                    fontFamily: {
+                        display: ["Rajdhani", "sans-serif"], // Para títulos y logos
+                        sans: ["Inter", "sans-serif"], // Para textos de lectura
+                    },
+                    borderRadius: {
+                        DEFAULT: "12px",
+                    },
+                },
+            },
+        };
+    </script>
+    
     <link rel="stylesheet" href="{% static 'principal/css/base.css' %}">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    
     {% block extra_css %}{% endblock %}
+
+    <style>
+        /* Efecto de anillo de luz roja suave cuando se hace clic en el buscador */
+        .search-focus-ring:focus-within {
+            box-shadow: 0 0 0 4px rgba(255, 62, 62, 0.15);
+            border-color: rgba(255, 62, 62, 0.5);
+        }
+        /* Efecto de desenfoque de fondo (estilo iPhone) para el header */
+        .glass-header {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-sans min-h-screen">
+    
     {% if messages %}
-        <div id="notification-container">
+        <div id="notification-container" class="fixed top-24 right-5 z-[9999] flex flex-col gap-3">
             {% for message in messages %}
-                <div class="notification notification-{{ message.tags|default:'info' }}">
-                    <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>{{ message }}</span>
-                    <button class="notification-close" onclick="this.parentElement.remove()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+                <div class="notification min-w-[300px] px-5 py-4 bg-white/90 dark:bg-card-dark/95 backdrop-blur-md border-l-4 border-primary rounded-xl shadow-2xl flex items-center gap-3 animate-slideIn">
+                    <span class="material-icons text-primary">info</span>
+                    <span class="flex-1 text-sm font-medium">{{ message }}</span>
+                    <button class="opacity-60 hover:opacity-100" onclick="this.parentElement.remove()">
+                        <span class="material-icons text-sm">close</span>
                     </button>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <header class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="navbar-brand">
-                <img src="{% static 'principal/images/kaircam-logo.png' %}" alt="Kaircam" class="brand-logo">
-                <div class="brand-info">
-                    <span class="brand-name">Kaircam</span>
-                    <span class="brand-tagline">Streaming</span>
-                </div>
-            </a>
-
-            <nav class="navbar-center">
-                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                    </svg>
-                    <span>Inicio</span>
-                </a>
+    <header class="sticky top-0 z-50 glass-header bg-white/80 dark:bg-background-dark/80 border-b border-slate-200 dark:border-white/10 px-4 py-3 md:px-8">
+        <div class="max-w-[1800px] mx-auto">
+            <div class="flex items-center justify-between gap-4">
                 
-                <form action="{% url 'search' %}" method="get" class="search-wrapper">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+                <a href="/" class="flex items-center gap-2.5 shrink-0 group">
+                    <div class="w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <img 
+                            src="{% static 'principal/images/kaircam-icon.png' %}" 
+                            alt="Logo KAIRCAM" 
+                            class="w-full h-full object-contain filter drop-shadow-md"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-display font-bold text-xl leading-none tracking-tight">KAIRCAM</span>
+                        <span class="font-display text-[10px] tracking-[0.2em] text-primary font-bold uppercase">Streaming</span>
+                    </div>
+                </a>
+
+                <div class="hidden md:block flex-1 max-w-2xl relative group">
+                    <form action="{% url 'search' %}" method="get" class="relative flex items-center">
+                        <span class="material-icons absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                        <input 
+                            type="text" 
+                            name="q"
+                            autocomplete="off"
+                            placeholder="Buscar canales, juegos o creadores..."
+                            class="w-full bg-slate-100 dark:bg-card-dark/50 border border-transparent dark:border-white/5 rounded-2xl py-2.5 pl-12 pr-4 text-sm transition-all search-focus-ring focus:outline-none"
+                        />
+                    </form>
+                </div>
+
+                <nav class="flex items-center gap-3 md:gap-6">
+                    <a class="hidden lg:flex items-center gap-2 hover:text-primary transition-colors text-sm font-semibold" href="#">
+                        <span class="material-icons text-xl">explore</span> Explorar
+                    </a>
+                    <div class="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10"></div>
+                    
+                    <button id="loginButton" class="px-5 py-2.5 bg-primary/10 hover:bg-primary border border-primary/20 hover:border-primary text-primary hover:text-white transition-all duration-300 rounded-xl font-bold text-xs tracking-wide uppercase">
+                        INGRESAR
+                    </button>
+                </nav>
+            </div>
+
+            <div class="md:hidden mt-3 w-full relative group">
+                <form action="{% url 'search' %}" method="get" class="relative flex items-center">
+                    <span class="material-icons absolute left-4 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
                     <input 
                         type="text" 
                         name="q"
-                        id="searchInput" 
-                        class="search-input" 
-                        placeholder="Buscar canal..."
                         autocomplete="off"
-                    >
+                        placeholder="Buscar..."
+                        class="w-full bg-slate-100 dark:bg-card-dark/50 border border-transparent dark:border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none search-focus-ring transition-all"
+                    />
                 </form>
-            </nav>
-
-            <div class="navbar-actions">
-                <button class="btn-login" id="loginButton">Iniciar Sesión</button>
             </div>
         </div>
     </header>
@@ -74,96 +129,74 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-brand-section">
-                <div class="footer-logo-wrapper">
-                    <img src="{% static 'principal/images/kaircam-logo.png' %}" alt="Kaircam" class="footer-logo">
-                    <span class="footer-version">v2.0 BETA</span>
+    <footer class="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-white/5 py-12 px-6 mt-12">
+        <div class="max-w-[1800px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
+            
+            <div class="space-y-6 flex flex-col items-center md:items-start">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">K</div>
+                    <span class="font-display font-bold text-lg tracking-tight">KAIRCAM</span>
+                    <span class="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full border border-primary/20 font-bold ml-2 uppercase">v2.0 Beta</span>
                 </div>
-                <p class="footer-description">
-                    La plataforma de transmisión en vivo de próxima generación. Latencia ultra baja, calidad 4K y herramientas profesionales para creadores de contenido exigentes.
+                <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
+                    Plataforma de próxima generación con latencia ultra baja y calidad profesional.
                 </p>
-                
-                <div class="company-badge">
-                    <div class="company-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
-                    </div>
-                    <div class="company-info">
-                        <span class="company-label">Desarrollado por</span>
-                        <span class="company-name">Kairos Software</span>
-                    </div>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"><span class="material-icons">facebook</span></a>
+                    <a href="#" class="w-10 h-10 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all"><span class="material-icons">alternate_email</span></a>
                 </div>
             </div>
-
-            <div class="footer-nav-grid">
-                <div class="footer-column">
-                    <h4>Producto</h4>
-                    <a href="#">Características</a>
-                    <a href="#">Para Streamers</a>
-                    <a href="#">Descargar App</a>
-                    <a href="#">Precios</a>
-                </div>
-
-                <div class="footer-column">
-                    <h4>Recursos</h4>
-                    <a href="#">Centro de Ayuda</a>
-                    <a href="#">Guías de Configuración</a>
-                    <a href="#">Estado del Servicio</a>
-                    <a href="#">API para Desarrolladores</a>
-                </div>
-
-                <div class="footer-column">
-                    <h4>Legal</h4>
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos de Uso</a>
-                    <a href="#">Cookies</a>
-                    <a href="#">Licencias</a>
-                </div>
+            
+            <div>
+                <h4 class="font-display font-bold text-sm tracking-widest uppercase mb-6">Producto</h4>
+                <ul class="space-y-4 text-sm text-slate-500 dark:text-slate-400">
+                    <li><a class="hover:text-primary transition-colors" href="#">Características</a></li>
+                    <li><a class="hover:text-primary transition-colors" href="#">App Móvil</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-display font-bold text-sm tracking-widest uppercase mb-6">Soporte</h4>
+                <ul class="space-y-4 text-sm text-slate-500 dark:text-slate-400">
+                    <li><a class="hover:text-primary transition-colors" href="#">Centro de Ayuda</a></li>
+                    <li><a class="hover:text-primary transition-colors" href="#">Estado del Servicio</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-display font-bold text-sm tracking-widest uppercase mb-6">Legal</h4>
+                <ul class="space-y-4 text-sm text-slate-500 dark:text-slate-400">
+                    <li><a class="hover:text-primary transition-colors" href="#">Privacidad</a></li>
+                    <li><a class="hover:text-primary transition-colors" href="#">Términos</a></li>
+                </ul>
             </div>
         </div>
-
-        <div class="footer-bottom">
-            <div class="copyright">
-                <p>&copy; {% now "Y" %} <strong>Kaircam</strong>. Todos los derechos reservados.</p>
-            </div>
-            <div class="footer-bottom-links">
-                <a href="#">Twitter</a>
-                <span class="separator">•</span>
-                <a href="#">Instagram</a>
-                <span class="separator">•</span>
-                <a href="#">LinkedIn</a>
+        
+        <div class="max-w-[1800px] mx-auto pt-8 mt-12 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p class="text-[11px] text-slate-500 uppercase tracking-widest font-semibold">
+                © {% now "Y" %} Kaircam Inc.
+            </p>
+            <div class="flex items-center gap-6 opacity-70">
+                <span class="flex items-center gap-2 text-xs font-medium">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Servidores Online
+                </span>
+                <span class="material-icons text-sm">language</span>
             </div>
         </div>
     </footer>
 
     <script src="{% static 'principal/js/base.js' %}"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Lógica del botón de Login
+            // Manejador del botón de Login para abrir el panel externo
             const loginBtn = document.getElementById('loginButton');
             if (loginBtn) {
-                loginBtn.addEventListener('click', function() {
+                loginBtn.addEventListener('click', () => {
                     window.open('https://kaircampanel.grupokairosarg.com', '_blank');
-                });
-            }
-
-            // Lógica del buscador (si no está en base.js)
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        // El formulario se enviará automáticamente si es un <form>
-                        // Si no, aquí iría la lógica: window.location.href = '/search/?q=' + this.value;
-                    }
                 });
             }
         });
     </script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>
