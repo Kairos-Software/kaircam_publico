@@ -123,3 +123,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ============================
 HLS_BASE_URL = os.getenv("HLS_BASE_URL")
 HLS_PROGRAM_PATH = os.getenv("HLS_PROGRAM_PATH", "program")
+
+
+CSRF_TRUSTED_ORIGINS = ['https://kaircam.grupokairosarg.com/']
+SESSION_COOKIE_SECURE = True  # Solo si usas HTTPS
+CSRF_COOKIE_SECURE = True     # Solo si usas HTTPS
