@@ -4,8 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}KAIRCAM - Streaming Platform{% endblock %}</title>
-    
+
+    <!-- FAVICON / ICONO DE LA PESTAÑA -->
+    <link rel="icon" href="{% static 'principal/images/logokair.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'principal/images/favicon.png' %}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Material+Icons&display=swap" rel="stylesheet">
@@ -17,15 +22,15 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#ff3e3e", // Rojo Kaircam
+                        primary: "#ff3e3e",
                         "background-light": "#f9fafb",
-                        "background-dark": "#0d0e12", // Fondo oscuro premium
+                        "background-dark": "#0d0e12",
                         "card-dark": "#16181d",
                         "accent-red": "#ff3e3e",
                     },
                     fontFamily: {
-                        display: ["Rajdhani", "sans-serif"], // Para títulos y logos
-                        sans: ["Inter", "sans-serif"], // Para textos de lectura
+                        display: ["Rajdhani", "sans-serif"],
+                        sans: ["Inter", "sans-serif"],
                     },
                     borderRadius: {
                         DEFAULT: "12px",
@@ -39,12 +44,10 @@
     {% block extra_css %}{% endblock %}
 
     <style>
-        /* Efecto de anillo de luz roja suave cuando se hace clic en el buscador */
         .search-focus-ring:focus-within {
             box-shadow: 0 0 0 4px rgba(255, 62, 62, 0.15);
             border-color: rgba(255, 62, 62, 0.5);
         }
-        /* Efecto de desenfoque de fondo (estilo iPhone) para el header */
         .glass-header {
             backdrop-filter: blur(16px) saturate(180%);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -105,7 +108,7 @@
                     <div class="hidden sm:block h-6 w-px bg-slate-200 dark:bg-white/10"></div>
                     
                     <button id="loginButton" class="px-5 py-2.5 bg-primary/10 hover:bg-primary border border-primary/20 hover:border-primary text-primary hover:text-white transition-all duration-300 rounded-xl font-bold text-xs tracking-wide uppercase">
-                        INGRESAR
+                        IR AL PANEL
                     </button>
                 </nav>
             </div>
