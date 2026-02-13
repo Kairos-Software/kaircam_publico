@@ -71,7 +71,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'stream_general.wsgi.application'
-ASGI_APPLICATION = 'stream_general.asgi.application'
 
 # ============================
 # DATABASE
@@ -124,7 +123,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 HLS_BASE_URL = os.getenv("HLS_BASE_URL")
 HLS_PROGRAM_PATH = os.getenv("HLS_PROGRAM_PATH", "program")
 
+# ============================
+# CSRF & SESSION (PRODUCCIÓN)
+# ============================
+# CRÍTICO: Sin la barra final
+CSRF_TRUSTED_ORIGINS = [
+    'https://kaircam.grupokairosarg.com',
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://kaircam.grupokairosarg.com/']
-SESSION_COOKIE_SECURE = True  # Solo si usas HTTPS
-CSRF_COOKIE_SECURE = True     # Solo si usas HTTPS
+# Cookies seguras solo en producción (HTTPS)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CRÍTICO: Permitir que JavaScript lea el CSRF token
+CSRF_COOKIE_HTTPONLY = False
+
+# Nombre de la cookie CSRF (opcional pero recomendado)
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_SAMESITE = 'Lax'

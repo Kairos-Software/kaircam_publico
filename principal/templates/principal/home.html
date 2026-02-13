@@ -185,59 +185,98 @@
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-    // Configuración Global inyectada desde Django
     window.STREAM_CONFIG = {
         hlsUrl: "{{ stream.hls_url|safe }}",
         isLive: {{ stream.en_vivo|yesno:"true,false" }},
-        streamId: "{% if es_home %}home{% else %}{{ streamer_name }}{% endif %}", // ID único del stream
+        streamId: "{% if es_home %}home{% else %}{{ streamer_name }}{% endif %}",
         guestName: "{{ guest_name|default:''|escapejs }}"
     };
 
     // ============================================
-    // UTILIDADES DE PERSISTENCIA
+    // SISTEMA DE PERSISTENCIA - VERSIÓN CORREGIDA
     // ============================================
     const ChatStorage = {
-        // Clave única por stream
         getStorageKey(suffix) {
             return `kaircam_chat_${window.STREAM_CONFIG.streamId}_${suffix}`;
         },
 
+        // Guardar el ESTADO ANTERIOR del stream (para detectar cambios)
+        getLastStreamStateKey() {
+            return this.getStorageKey('last_stream_state');
+        },
+
+        // Obtener el último estado conocido del stream
+        getLastStreamState() {
+            const state = localStorage.getItem(this.getLastStreamStateKey());
+            return state === 'true'; // Convertir string a boolean
+        },
+
+        // Guardar el estado actual del stream
+        setLastStreamState(isLive) {
+            localStorage.setItem(this.getLastStreamStateKey(), isLive.toString());
+        },
+
         // Guardar nombre de invitado
         saveGuestName(name) {
-            sessionStorage.setItem(this.getStorageKey('guest_name'), name);
+            localStorage.setItem(this.getStorageKey('guest_name'), name);
             window.STREAM_CONFIG.guestName = name;
         },
 
-        // Obtener nombre de invitado
         getGuestName() {
-            const stored = sessionStorage.getItem(this.getStorageKey('guest_name'));
+            const stored = localStorage.getItem(this.getStorageKey('guest_name'));
             return stored || window.STREAM_CONFIG.guestName || '';
         },
 
-        // Guardar mensajes del chat
+        // Guardar mensajes
         saveMessages(messages) {
-            sessionStorage.setItem(this.getStorageKey('messages'), JSON.stringify(messages));
+            localStorage.setItem(this.getStorageKey('messages'), JSON.stringify(messages));
         },
 
-        // Obtener mensajes del chat
         getMessages() {
-            const stored = sessionStorage.getItem(this.getStorageKey('messages'));
+            const stored = localStorage.getItem(this.getStorageKey('messages'));
             return stored ? JSON.parse(stored) : [];
         },
 
-        // Limpiar chat (cuando termina la transmisión)
-        clearChat() {
-            sessionStorage.removeItem(this.getStorageKey('messages'));
-            sessionStorage.removeItem(this.getStorageKey('guest_name'));
+        addMessage(msgData) {
+            const messages = this.getMessages();
+            messages.push(msgData);
+            if (messages.length > 200) {
+                messages.shift();
+            }
+            this.saveMessages(messages);
         },
 
-        // Verificar si el stream sigue activo
-        isStreamActive() {
-            return window.STREAM_CONFIG.isLive;
+        // Limpiar TODO el chat
+        clearChat() {
+            console.log('🧹 Limpiando chat - Stream terminado');
+            localStorage.removeItem(this.getStorageKey('messages'));
+            localStorage.removeItem(this.getStorageKey('guest_name'));
+        },
+
+        // Inicializar: SOLO limpiar si stream pasó de ACTIVO a INACTIVO
+        initialize() {
+            const currentState = window.STREAM_CONFIG.isLive;
+            const previousState = this.getLastStreamState();
+
+            console.log('🔍 Estado del stream:');
+            console.log('  - Estado actual:', currentState ? 'ACTIVO' : 'INACTIVO');
+            console.log('  - Estado anterior:', previousState ? 'ACTIVO' : 'INACTIVO');
+
+            // SOLO limpiar si el stream PASÓ de activo a inactivo
+            if (previousState === true && currentState === false) {
+                console.log('🔴 Stream terminó - Limpiando chat');
+                this.clearChat();
+            } else if (currentState === true) {
+                console.log('📺 Stream activo - Manteniendo mensajes');
+            } else {
+                console.log('⏸️ Stream inactivo (sin cambio de estado)');
+            }
+
+            // Guardar el estado actual para la próxima vez
+            this.setLastStreamState(currentState);
         }
     };
 
-    // Función para obtener el CSRF token de las cookies
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -253,14 +292,12 @@
         return cookieValue;
     }
 
-    // Función para escapar HTML
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
-    // Función para obtener hora actual
     function getTime() {
         const now = new Date();
         return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -269,6 +306,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         const chatInput = document.getElementById('chatInput');
         const chatMessages = document.getElementById('chatMessages');
+        const chatSendBtn = document.getElementById('chatSendBtn');
         const charCount = document.getElementById('charCount');
         const modal = document.getElementById('guestModal');
         const nickInput = document.getElementById('guestNicknameInput');
@@ -280,10 +318,8 @@
         // INICIALIZACIÓN
         // ============================================
         
-        // Si el stream no está activo, limpiar el chat
-        if (!ChatStorage.isStreamActive()) {
-            ChatStorage.clearChat();
-        }
+        // Inicializar sistema de persistencia (detecta cambios de estado)
+        ChatStorage.initialize();
 
         // Cargar nombre guardado
         const savedGuestName = ChatStorage.getGuestName();
@@ -292,29 +328,9 @@
             chatInput.placeholder = `Chateando como ${savedGuestName}...`;
         }
 
-        // Cargar mensajes guardados
-        const savedMessages = ChatStorage.getMessages();
-        if (savedMessages.length > 0) {
-            savedMessages.forEach(msg => {
-                renderMessage(msg, false); // false = no guardar de nuevo
-            });
-        } else {
-            // Solo mostrar mensaje de bienvenida si no hay mensajes guardados
-            const welcomeMsg = {
-                author: 'Sistema',
-                text: window.STREAM_CONFIG.streamId === 'home' 
-                    ? '¡Bienvenido al chat oficial de Kaircam!'
-                    : `¡Bienvenido al chat de ${window.STREAM_CONFIG.streamId}!`,
-                time: getTime(),
-                isAdmin: true
-            };
-            renderMessage(welcomeMsg, true);
-        }
-
         // ============================================
-        // FUNCIONES DE CHAT
+        // RENDERIZADO DE MENSAJES
         // ============================================
-
         function renderMessage(msgData, shouldSave = true) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message-item p-3 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5';
@@ -330,40 +346,39 @@
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Guardar mensaje en sessionStorage
-            if (shouldSave) {
-                const messages = ChatStorage.getMessages();
-                messages.push(msgData);
-                // Limitar a últimos 100 mensajes
-                if (messages.length > 100) {
-                    messages.shift();
-                }
-                ChatStorage.saveMessages(messages);
+            if (shouldSave && window.STREAM_CONFIG.isLive) {
+                ChatStorage.addMessage(msgData);
             }
         }
 
-        function addMessage(text) {
-            const msgData = {
-                author: window.STREAM_CONFIG.guestName || 'Invitado',
-                text: text,
+        // Cargar mensajes guardados
+        const savedMessages = ChatStorage.getMessages();
+        if (savedMessages.length > 0) {
+            console.log(`📦 Cargando ${savedMessages.length} mensajes guardados`);
+            savedMessages.forEach(msg => renderMessage(msg, false));
+        } else {
+            // Solo mostrar bienvenida si no hay mensajes guardados
+            const welcomeMsg = {
+                author: 'Sistema',
+                text: window.STREAM_CONFIG.streamId === 'home' 
+                    ? '¡Bienvenido al chat oficial de Kaircam!'
+                    : `¡Bienvenido al chat de ${window.STREAM_CONFIG.streamId}!`,
                 time: getTime(),
-                isAdmin: false
+                isAdmin: true
             };
-            renderMessage(msgData, true);
+            renderMessage(welcomeMsg, true);
         }
 
         // ============================================
         // EVENT LISTENERS
         // ============================================
 
-        // Actualizar contador de caracteres
         chatInput.addEventListener('input', function() {
             charCount.textContent = `${this.value.length} / 500`;
             if(this.value.length > 450) charCount.classList.add('text-primary');
             else charCount.classList.remove('text-primary');
         });
 
-        // Mostrar modal si no tiene nombre
         chatInput.addEventListener('focus', function(e) {
             if (!window.STREAM_CONFIG.guestName) {
                 chatInput.blur();
@@ -372,16 +387,12 @@
             }
         });
 
-        // Función para mostrar errores
         function showError(msg) {
             errorMsg.textContent = msg;
             errorMsg.style.display = 'block';
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 3000);
+            setTimeout(() => errorMsg.style.display = 'none', 3000);
         }
 
-        // Función para guardar el nombre
         function saveGuestName() {
             const name = nickInput.value.trim();
             if (!name) { 
@@ -391,8 +402,10 @@
 
             const csrftoken = getCookie('csrftoken');
             
-            console.log('Enviando nickname:', name);
-            console.log('CSRF Token:', csrftoken);
+            console.log('🔍 Debug Info:');
+            console.log('  - Nickname:', name);
+            console.log('  - CSRF Token:', csrftoken);
+            console.log('  - Cookie String:', document.cookie);
 
             fetch("{% url 'set_guest_name' %}", {
                 method: "POST",
@@ -403,23 +416,24 @@
                 body: JSON.stringify({ nickname: name })
             })
             .then(res => {
-                console.log('Response status:', res.status);
+                console.log('✅ Response Status:', res.status);
+                console.log('📋 Response Headers:', [...res.headers.entries()]);
                 if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.text().then(text => {
+                        console.error('❌ Error Response Body:', text);
+                        throw new Error(`HTTP ${res.status}: ${text.substring(0, 200)}`);
+                    });
                 }
                 return res.json();
             })
             .then(data => {
-                console.log('Response data:', data);
+                console.log('✅ Success Data:', data);
                 if (data.success) {
-                    // Guardar en sessionStorage
                     ChatStorage.saveGuestName(data.nickname);
-                    
                     modal.style.display = 'none';
                     chatInput.placeholder = `Chateando como ${data.nickname}...`;
                     chatInput.focus();
 
-                    // Agregar mensaje de bienvenida personalizado
                     const welcomeMsg = {
                         author: 'Sistema',
                         text: `${data.nickname} se ha unido al chat 👋`,
@@ -432,40 +446,42 @@
                 }
             })
             .catch(err => {
-                console.error('Error completo:', err);
+                console.error('❌ Error completo:', err);
                 showError('Error de conexión. Revisa la consola.');
             });
         }
 
-        // Guardar nombre al hacer clic
         saveBtn.addEventListener('click', saveGuestName);
-
-        // Guardar nombre al presionar Enter en el input del modal
-        nickInput.addEventListener('keypress', function(e) {
+        nickInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 saveGuestName();
             }
         });
 
-        // Cerrar modal
         cancelBtn.addEventListener('click', () => modal.style.display = 'none');
 
-        // Enviar mensaje al presionar Enter en el chat
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                const text = chatInput.value.trim();
-                if (text && text.length <= 500) {
-                    addMessage(text);
-                    chatInput.value = '';
-                    charCount.textContent = '0 / 500';
-                }
+        chatSendBtn.addEventListener('click', () => {
+            const text = chatInput.value.trim();
+            if (text && text.length <= 500) {
+                const msgData = {
+                    author: window.STREAM_CONFIG.guestName || 'Invitado',
+                    text: text,
+                    time: getTime(),
+                    isAdmin: false
+                };
+                renderMessage(msgData, true);
+                chatInput.value = '';
+                charCount.textContent = '0 / 500';
             }
         });
 
-        // Scroll al fondo
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatSendBtn.click();
+            }
+        });
     });
 </script>
 {% endblock %}
