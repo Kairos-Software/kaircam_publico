@@ -189,11 +189,86 @@
     window.STREAM_CONFIG = {
         hlsUrl: "{{ stream.hls_url|safe }}",
         isLive: {{ stream.en_vivo|yesno:"true,false" }},
+        streamId: "{% if es_home %}home{% else %}{{ streamer_name }}{% endif %}", // ID único del stream
         guestName: "{{ guest_name|default:''|escapejs }}"
     };
 
+    // ============================================
+    // UTILIDADES DE PERSISTENCIA
+    // ============================================
+    const ChatStorage = {
+        // Clave única por stream
+        getStorageKey(suffix) {
+            return `kaircam_chat_${window.STREAM_CONFIG.streamId}_${suffix}`;
+        },
+
+        // Guardar nombre de invitado
+        saveGuestName(name) {
+            sessionStorage.setItem(this.getStorageKey('guest_name'), name);
+            window.STREAM_CONFIG.guestName = name;
+        },
+
+        // Obtener nombre de invitado
+        getGuestName() {
+            const stored = sessionStorage.getItem(this.getStorageKey('guest_name'));
+            return stored || window.STREAM_CONFIG.guestName || '';
+        },
+
+        // Guardar mensajes del chat
+        saveMessages(messages) {
+            sessionStorage.setItem(this.getStorageKey('messages'), JSON.stringify(messages));
+        },
+
+        // Obtener mensajes del chat
+        getMessages() {
+            const stored = sessionStorage.getItem(this.getStorageKey('messages'));
+            return stored ? JSON.parse(stored) : [];
+        },
+
+        // Limpiar chat (cuando termina la transmisión)
+        clearChat() {
+            sessionStorage.removeItem(this.getStorageKey('messages'));
+            sessionStorage.removeItem(this.getStorageKey('guest_name'));
+        },
+
+        // Verificar si el stream sigue activo
+        isStreamActive() {
+            return window.STREAM_CONFIG.isLive;
+        }
+    };
+
+    // Función para obtener el CSRF token de las cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Función para escapar HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Función para obtener hora actual
+    function getTime() {
+        const now = new Date();
+        return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
         const charCount = document.getElementById('charCount');
         const modal = document.getElementById('guestModal');
         const nickInput = document.getElementById('guestNicknameInput');
@@ -201,14 +276,94 @@
         const cancelBtn = document.getElementById('cancelGuestBtn');
         const errorMsg = document.getElementById('guestError');
 
-        // Actualizar contador de caracteres dinámicamente
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        // Si el stream no está activo, limpiar el chat
+        if (!ChatStorage.isStreamActive()) {
+            ChatStorage.clearChat();
+        }
+
+        // Cargar nombre guardado
+        const savedGuestName = ChatStorage.getGuestName();
+        if (savedGuestName) {
+            window.STREAM_CONFIG.guestName = savedGuestName;
+            chatInput.placeholder = `Chateando como ${savedGuestName}...`;
+        }
+
+        // Cargar mensajes guardados
+        const savedMessages = ChatStorage.getMessages();
+        if (savedMessages.length > 0) {
+            savedMessages.forEach(msg => {
+                renderMessage(msg, false); // false = no guardar de nuevo
+            });
+        } else {
+            // Solo mostrar mensaje de bienvenida si no hay mensajes guardados
+            const welcomeMsg = {
+                author: 'Sistema',
+                text: window.STREAM_CONFIG.streamId === 'home' 
+                    ? '¡Bienvenido al chat oficial de Kaircam!'
+                    : `¡Bienvenido al chat de ${window.STREAM_CONFIG.streamId}!`,
+                time: getTime(),
+                isAdmin: true
+            };
+            renderMessage(welcomeMsg, true);
+        }
+
+        // ============================================
+        // FUNCIONES DE CHAT
+        // ============================================
+
+        function renderMessage(msgData, shouldSave = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-item p-3 rounded-lg bg-slate-50/50 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/5';
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-start justify-between gap-2 mb-1">
+                    <span class="font-bold text-xs ${msgData.isAdmin ? 'text-primary' : 'text-slate-700 dark:text-slate-300'}">${escapeHtml(msgData.author)}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">${msgData.time}</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${escapeHtml(msgData.text)}</p>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Guardar mensaje en sessionStorage
+            if (shouldSave) {
+                const messages = ChatStorage.getMessages();
+                messages.push(msgData);
+                // Limitar a últimos 100 mensajes
+                if (messages.length > 100) {
+                    messages.shift();
+                }
+                ChatStorage.saveMessages(messages);
+            }
+        }
+
+        function addMessage(text) {
+            const msgData = {
+                author: window.STREAM_CONFIG.guestName || 'Invitado',
+                text: text,
+                time: getTime(),
+                isAdmin: false
+            };
+            renderMessage(msgData, true);
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        // Actualizar contador de caracteres
         chatInput.addEventListener('input', function() {
             charCount.textContent = `${this.value.length} / 500`;
             if(this.value.length > 450) charCount.classList.add('text-primary');
             else charCount.classList.remove('text-primary');
         });
 
-        // Lógica de Modal para usuarios no registrados
+        // Mostrar modal si no tiene nombre
         chatInput.addEventListener('focus', function(e) {
             if (!window.STREAM_CONFIG.guestName) {
                 chatInput.blur();
@@ -217,37 +372,100 @@
             }
         });
 
-        // Guardar nombre de invitado vía AJAX
-        saveBtn.addEventListener('click', function() {
-            const name = nickInput.value.trim();
-            if (!name) { showError("Escribe un nombre válido"); return; }
-
-            fetch("{% url 'set_guest_name' %}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-                body: JSON.stringify({ nickname: name })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    window.STREAM_CONFIG.guestName = data.nickname;
-                    modal.style.display = 'none';
-                    chatInput.placeholder = `Chateando como ${data.nickname}...`;
-                    chatInput.focus();
-                } else { showError(data.error); }
-            });
-        });
-
-        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
-
+        // Función para mostrar errores
         function showError(msg) {
             errorMsg.textContent = msg;
             errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 3000);
         }
 
-        // Scroll al fondo automático (Simulación)
-        const messagesBox = document.getElementById('chatMessages');
-        messagesBox.scrollTop = messagesBox.scrollHeight;
+        // Función para guardar el nombre
+        function saveGuestName() {
+            const name = nickInput.value.trim();
+            if (!name) { 
+                showError("Escribe un nombre válido"); 
+                return; 
+            }
+
+            const csrftoken = getCookie('csrftoken');
+            
+            console.log('Enviando nickname:', name);
+            console.log('CSRF Token:', csrftoken);
+
+            fetch("{% url 'set_guest_name' %}", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify({ nickname: name })
+            })
+            .then(res => {
+                console.log('Response status:', res.status);
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    // Guardar en sessionStorage
+                    ChatStorage.saveGuestName(data.nickname);
+                    
+                    modal.style.display = 'none';
+                    chatInput.placeholder = `Chateando como ${data.nickname}...`;
+                    chatInput.focus();
+
+                    // Agregar mensaje de bienvenida personalizado
+                    const welcomeMsg = {
+                        author: 'Sistema',
+                        text: `${data.nickname} se ha unido al chat 👋`,
+                        time: getTime(),
+                        isAdmin: true
+                    };
+                    renderMessage(welcomeMsg, true);
+                } else { 
+                    showError(data.error || 'Error desconocido'); 
+                }
+            })
+            .catch(err => {
+                console.error('Error completo:', err);
+                showError('Error de conexión. Revisa la consola.');
+            });
+        }
+
+        // Guardar nombre al hacer clic
+        saveBtn.addEventListener('click', saveGuestName);
+
+        // Guardar nombre al presionar Enter en el input del modal
+        nickInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveGuestName();
+            }
+        });
+
+        // Cerrar modal
+        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        // Enviar mensaje al presionar Enter en el chat
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const text = chatInput.value.trim();
+                if (text && text.length <= 500) {
+                    addMessage(text);
+                    chatInput.value = '';
+                    charCount.textContent = '0 / 500';
+                }
+            }
+        });
+
+        // Scroll al fondo
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     });
 </script>
 {% endblock %}
